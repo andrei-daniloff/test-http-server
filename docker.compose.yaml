@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  database:
+    image: postgres:16
+    restart: always
+    ports:
+      - 9432:5432
+    environment:
+      POSTGRES_DB: frmwrk
+      POSTGRES_USER: frmwrk
+      POSTGRES_PASSWORD: frmwrk
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_data:/data/postgres
+
+  adminer:
+    image: adminer:4
+    restart: always
+    ports:
+      - 8888:8080
+    environment:
+      ADMINER_DEFAULT_SERVER: database
+
+volumes:
+  postgres_data:
+    driver: local
