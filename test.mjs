@@ -4,7 +4,7 @@ const mode = 'get';
 
 for (const name of ['express4', 'express5', 'fastify', 'hyper-express', 'rayo']) {
 
-	const data = fs.readFileSync(`./results/node.${name}.${mode}.json`, 'utf-8');
+	const data = fs.readFileSync(`./node.${name}.${mode}.json`, 'utf-8');
 
 	const average = (arr = []) => arr.reduce((p, c) => p + c, 0) / arr.length;
 
