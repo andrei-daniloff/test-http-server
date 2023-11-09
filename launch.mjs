@@ -8,7 +8,7 @@ function delay(ms) {
 	});
 }
 
-for (const mode of ['get', 'find']) {
+for (const mode of ['get', 'find', 'create']) {
 	for (const name of ['express4', 'express5', 'fastify', 'hyper-express', 'rayo']) {
 		const server = execaNode(`./lib/${name}.mjs`, []);
 
