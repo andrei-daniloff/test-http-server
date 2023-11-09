@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@rayo/send": "^1.1.5",
     "@types/express": "^4.17.20",
     "body-parser": "^1.20.2",
     "express": "^5.0.0-beta.1",
@@ -8,6 +9,7 @@
     "p-map": "^6.0.0",
     "pidusage": "^3.0.2",
     "pm2": "^5.3.0",
-    "postgres": "^3.4.3"
+    "postgres": "^3.4.3",
+    "rayo": "^1.4.5"
   }
 }
