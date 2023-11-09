@@ -26,7 +26,7 @@ export const options = {
 };
 
 export default function() {
-	const res = http.get('http://127.0.0.1:3000', {});
+	const res = http.get('http://127.0.0.1:3000/my_super_puper_slug_700', {});
 
 	check(res, { 'status was 200': (r) => r.status == 200 });
 
