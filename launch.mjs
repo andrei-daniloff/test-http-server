@@ -18,6 +18,9 @@ for (const mode of ['get', 'find']) {
 			}),
 			delay(3000)
 				.then(() => execaCommand(`k6 run ./k6.${mode}.js`))
+				.then((result) => {
+					fs.writeFileSync(`k6.${name}.${mode}.md`, result.stdout);
+				})
 				.then(() => delay(3000))
 				.then(() => server.kill()),
 		]);
