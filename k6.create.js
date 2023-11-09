@@ -1,3 +1,5 @@
+import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -26,7 +28,16 @@ export const options = {
 };
 
 export default function() {
-	const res = http.get('http://127.0.0.1:3000', {});
+	const data = {
+		"slug": uuidv4(),
+		"title": uuidv4(),
+		"description": uuidv4().repeat(100),
+		"attributes": { "a": 1 }
+	};
+
+	const res = http.post('http://127.0.0.1:3000', JSON.stringify(data), {
+		headers: { 'Content-Type': 'application/json' },
+	});
 
 	check(res, { 'status was 200': (r) => r.status == 200 });
 
