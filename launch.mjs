@@ -9,8 +9,14 @@ function delay(ms) {
 }
 
 for (const mode of ['get', 'find', 'create']) {
-	for (const name of ['express4', 'express5', 'fastify', 'nestjs', 'hyper-express', 'rayo', '0http', 'micro']) {
-		const server = execaNode(`./lib/${name}.mjs`, []);
+	for (const name of ['express4', 'express5', 'fastify', 'nestjs', 'hyper-express', 'rayo', '0http', 'micro', 'go.gin']) {
+		if (name === 'go.gin' && mode === 'create') {
+			continue;
+		}
+
+		const command = name === 'go.gin' ? `node ./lib/${name}.mjs` : `./${name}`;
+
+		const server = execaCommand(command, []);
 
 		await Promise.all([
 			server.catch((error) => {
