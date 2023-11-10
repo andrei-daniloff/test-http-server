@@ -32,21 +32,21 @@ for (const name of ['express4', 'express5', 'fastify', 'nestjs', 'hyper-express'
 			cpu: Math.trunc(item.cpu),
 			memory: item.memory / 1e+6,
 
-			rss: item.process.memory.rss / 1e+6,
-			heap_usage: item.process.memory.heapUsed / 1e+6,
-			heap_size: item.process.memory.heapTotal / 1e+6,
+			rss: item?.process?.memory?.rss ?? 0 / 1e+6,
+			heap_usage: item?.process?.memory?.heapUsed ?? 0 / 1e+6,
+			heap_size: item?.process?.memory?.heapTotal ?? 0 / 1e+6,
 
-			event_loop_latency_mean: item.process?.ell?.mean,
-			event_loop_latency_max: item.process?.ell?.max,
-			event_loop_latency_p95: item.process?.ell?.p95,
-			event_loop_latency_p99: item.process?.ell?.p99,
+			event_loop_latency_mean: item?.process?.ell?.mean ?? 0,
+			event_loop_latency_max: item?.process?.ell?.max ?? 0,
+			event_loop_latency_p95: item?.process?.ell?.p95 ?? 0,
+			event_loop_latency_p99: item?.process?.ell?.p99 ?? 0,
 
-			rps: item.process.time.length,
+			rps: (item?.process?.time || item.time).length,
 
-			time_mean: average(item.process.time),
-			time_max: Math.max(...item.process.time),
-			time_p95: calculatePercentile(item.process.time, 95),
-			time_p99: calculatePercentile(item.process.time, 99),
+			time_mean: average(item?.process?.time || item.time),
+			time_max: Math.max(...(item?.process?.time || item.time)),
+			time_p95: calculatePercentile(item?.process?.time || item.time, 95),
+			time_p99: calculatePercentile(item?.process?.time || item.time, 99),
 		}))
 
 	fs.appendFileSync('./result.js', `\n\n\n\n\n\nconst ${name} = ${JSON.stringify(items)};`);
