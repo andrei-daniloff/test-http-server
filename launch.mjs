@@ -16,7 +16,7 @@ for (const mode of ['get', 'find', 'create']) {
 			continue;
 		}
 
-		const command = name === 'go.gin' ? `./lib2/${name}` : `node ./lib/${name}.mjs`;
+		const command = name === 'go.gin' ? `./go/${name}` : `node ./lib/${name}.mjs`;
 
 		const server = execaCommand(command);
 
