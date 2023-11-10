@@ -2,18 +2,60 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 var db *sql.DB
+
+type ProcessMetric struct {
+	Cpu    int     `json:"cpu"`
+	Memory int     `json:"memory"`
+	Time   []int64 `json:"time"`
+}
+
+var times = []int64{}
+
+func getProcessMetrics() ProcessMetric {
+	process, err := process.NewProcess(int32(os.Getpid()))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cpu, err := process.CPUPercent()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mem, err := process.MemoryInfo()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result := ProcessMetric{
+		Cpu:    int(math.Trunc(cpu)),
+		Memory: int(mem.RSS),
+		Time:   times,
+	}
+
+	times = []int64{}
+
+	return result
+}
 
 func main() {
 	gin.DisableConsoleColor()
@@ -33,26 +75,40 @@ func main() {
 	router.GET("/", findHandler)
 	router.GET("/:slug", getHandler)
 
-	// ticker := time.NewTicker(1 * time.Second)
-	// quit := make(chan struct{})
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			stat, err := linuxproc.ReadStat("/proc/stat")
-	// 			if err != nil {
-	// 				log.Fatal("stat read fail")
-	// 			}
+	ticker := time.NewTicker(1 * time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				metrics := getProcessMetrics()
 
-	// 			for _, s := range stat.CPUStats {
-	// 				fmt.Println(s)
-	// 			}
-	// 		case <-quit:
-	// 			ticker.Stop()
-	// 			return
-	// 		}
-	// 	}
-	// }()
+				f, err := os.OpenFile("../launch.json", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+				if err != nil {
+					panic(err)
+				}
+
+				defer f.Close()
+
+				data, err := json.Marshal(metrics)
+
+				if err != nil {
+					panic(err)
+				}
+
+				if _, err = f.Write(data); err != nil {
+					panic(err)
+				}
+
+				if _, err = f.WriteString("\n"); err != nil {
+					panic(err)
+				}
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 
 	router.Run("localhost:3000")
 }
@@ -85,6 +141,8 @@ type GetHandlerParameters struct {
 }
 
 func findHandler(c *gin.Context) {
+	start := time.Now()
+
 	userId := getRandomInt(1, 800_000)
 
 	rows, err := db.Query("SELECT sid, login FROM \"user\" WHERE sid = $1 LIMIT 1", userId)
@@ -163,9 +221,13 @@ func findHandler(c *gin.Context) {
 		"total": total,
 		"posts": posts,
 	})
+
+	times = append(times, time.Since(start).Milliseconds())
 }
 
 func getHandler(c *gin.Context) {
+	start := time.Now()
+
 	var parameters GetHandlerParameters
 
 	c.ShouldBindUri(&parameters)
@@ -230,4 +292,6 @@ func getHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, posts[0])
+
+	times = append(times, time.Since(start).Milliseconds())
 }
