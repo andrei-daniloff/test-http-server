@@ -1,4 +1,4 @@
-module v2
+module go.gin
 
 go 1.21.4
 
