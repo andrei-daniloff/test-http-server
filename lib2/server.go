@@ -83,7 +83,7 @@ func main() {
 			case <-ticker.C:
 				metrics := getProcessMetrics()
 
-				f, err := os.OpenFile("../launch.json", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+				f, err := os.OpenFile("./launch.json", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 				if err != nil {
 					panic(err)
 				}

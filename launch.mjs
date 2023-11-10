@@ -10,6 +10,8 @@ function delay(ms) {
 
 for (const mode of ['get', 'find', 'create']) {
 	for (const name of ['express4', 'express5', 'fastify', 'nestjs', 'hyper-express', 'rayo', '0http', 'micro', 'go.gin']) {
+		fs.truncateSync('./launch.json');
+
 		if (name === 'go.gin' && mode === 'create') {
 			continue;
 		}
