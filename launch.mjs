@@ -33,7 +33,9 @@ for (const mode of ['get', 'find', 'create']) {
 				.then(() => server.kill()),
 		]);
 
-		fs.copyFileSync('./launch.json', `node.${name}.${mode}.json`);
+		const file = name === 'go.gin' ? `go.${name}.${mode}.json` : `node.${name}.${mode}.json`;
+
+		fs.copyFileSync('./launch.json', file);
 	}
 
 }
