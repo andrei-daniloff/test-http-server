@@ -14,9 +14,9 @@ for (const mode of ['get', 'find', 'create']) {
 			continue;
 		}
 
-		const command = name === 'go.gin' ? `./${name}` : `node ./lib/${name}.mjs`;
+		const command = name === 'go.gin' ? `./lib2/${name}` : `node ./lib/${name}.mjs`;
 
-		const server = execaCommand(command, []);
+		const server = execaCommand(command);
 
 		await Promise.all([
 			server.catch((error) => {
