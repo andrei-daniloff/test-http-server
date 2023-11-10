@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -19,10 +21,67 @@ import (
 
 var db *sql.DB
 
+type User struct {
+	Sid   int
+	Login string
+}
+
+type Acl struct {
+	Role        string
+	Permissions string
+	Sid         int
+}
+
+type Post struct {
+	Sid         int    `json:"sid"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Slug        string `json:"slug"`
+	Attributes  Attrs  `json:"attributes"`
+}
+
+type CreatePost struct {
+	Title       *string                 `json:"title"`
+	Description *string                 `json:"description"`
+	Slug        *string                 `json:"slug"`
+	Attributes  *map[string]interface{} `json:"attributes"`
+}
+
+type GetHandlerParameters struct {
+	Slug string `uri:"slug" binding:"required"`
+}
+
 type ProcessMetric struct {
 	Cpu    int     `json:"cpu"`
 	Memory int     `json:"memory"`
 	Time   []int64 `json:"time"`
+}
+
+type Attrs map[string]interface{}
+
+func (p Attrs) Value() (driver.Value, error) {
+	j, err := json.Marshal(p)
+	return j, err
+}
+
+func (p *Attrs) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed.")
+	}
+
+	var i interface{}
+	err := json.Unmarshal(source, &i)
+	if err != nil {
+		return err
+	}
+
+	*p, ok = i.(map[string]interface{})
+	if !ok {
+		return errors.New("Type assertion .(map[string]interface{}) failed.")
+	}
+
+	return nil
 }
 
 var times = []int64{}
@@ -74,6 +133,7 @@ func main() {
 
 	router.GET("/", findHandler)
 	router.GET("/:slug", getHandler)
+	router.POST("/", createHandler)
 
 	ticker := time.NewTicker(1 * time.Second)
 	quit := make(chan struct{})
@@ -115,29 +175,6 @@ func main() {
 
 func getRandomInt(min, max int) int {
 	return rand.Intn(max-min) + min
-}
-
-type User struct {
-	Sid   int
-	Login string
-}
-
-type Acl struct {
-	Role        string
-	Permissions string
-	Sid         int
-}
-
-type Post struct {
-	Sid         int    `json:"sid"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Slug        string `json:"slug"`
-	Attributes  []byte `json:"attributes"`
-}
-
-type GetHandlerParameters struct {
-	Slug string `uri:"slug" binding:"required"`
 }
 
 func findHandler(c *gin.Context) {
@@ -292,6 +329,59 @@ func getHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, posts[0])
+
+	times = append(times, time.Since(start).Milliseconds())
+}
+
+func createHandler(c *gin.Context) {
+	start := time.Now()
+
+	body := new(CreatePost)
+
+	if err := c.BindJSON(&body); err != nil {
+		fmt.Println(err)
+	}
+
+	if body.Slug == nil || len(*body.Slug) > 1_000_000 {
+		panic("Title is required")
+	}
+
+	if body.Title == nil || len(*body.Title) > 1_000_000 {
+		panic("Title is required")
+	}
+
+	if body.Description == nil || len(*body.Description) > 1_000_000 {
+		panic("Title is required")
+	}
+
+	if body.Attributes == nil || len(*body.Attributes) > 1_000_000 {
+		panic("Title is required")
+	}
+
+	post := new(Post)
+
+	attributes, err := json.Marshal(body.Attributes)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	rows, err := db.Query("INSERT INTO post (slug, title, description, attributes) VALUES ($1, $2, $3, $4) RETURNING sid, slug, title, description, attributes", body.Slug, body.Title, body.Description, attributes)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(&post.Sid, &post.Slug, &post.Title, &post.Description, &post.Attributes); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, post)
 
 	times = append(times, time.Since(start).Milliseconds())
 }
