@@ -9,7 +9,7 @@ function delay(ms) {
 }
 
 for (const mode of ['get', 'find', 'create']) {
-	for (const name of ['express4', 'express5', 'fastify', 'hyper-express', 'rayo']) {
+	for (const name of ['express4', 'express5', 'fastify', 'nestjs', 'hyper-express', 'rayo', '0http', 'micro']) {
 		const server = execaNode(`./lib/${name}.mjs`, []);
 
 		await Promise.all([

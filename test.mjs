@@ -2,7 +2,7 @@ import fs from 'fs';
 
 const mode = 'get';
 
-for (const name of ['express4', 'express5', 'fastify', 'hyper-express', 'rayo']) {
+for (const name of ['express4', 'express5', 'fastify', 'nestjs', 'hyper-express', 'rayo', '0http', 'micro']) {
 
 	const data = fs.readFileSync(`./node.${name}.${mode}.json`, 'utf-8');
 
