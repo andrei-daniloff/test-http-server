@@ -15,7 +15,7 @@ services:
       - "-c"
       - "effective_cache_size=10GB"
       - "-c"
-      - "work_mem=16MB"
+      - "work_mem=32MB"
       - "-c"
       - "maintenance_work_mem=512MB"
       - "-c"
